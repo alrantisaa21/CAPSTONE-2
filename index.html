@@ -463,7 +463,6 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
   <div class="nav-tabs" id="nav-tabs">
     <div class="nav-tab active" data-page="overview" onclick="showPage('overview', this)">📊 Overview</div>
     <div class="nav-tab" data-page="trends" onclick="showPage('trends', this)">📈 Tren &amp; Grafik</div>
-    <div class="nav-tab" data-page="bva" onclick="showPage('bva', this)">⚖️ Before vs After</div>
     <div class="nav-tab" data-page="dn-handler" onclick="showPage('dn-handler', this)">🚨 DN Negatif</div>
     <div class="nav-tab" data-page="data" onclick="showPage('data', this)">🗃️ Data Part</div>
     <div class="nav-tab" data-page="log" onclick="showPage('log', this)">📋 Log Aktivitas</div>
@@ -606,13 +605,7 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
       </div>
     </div>
 
-    <!-- ══════════════ PAGE: BVA ══════════════ -->
-    <div class="page" id="page-bva">
-      <div class="section-header" style="margin-bottom:20px">
-        <div class="section-title">Perbandingan Kinerja: Before vs After Implementasi Dashboard</div>
-      </div>
-
-      <div class="bva-grid">
+         <div class="bva-grid">
         <div class="bva-col before">
           <div class="bva-label-header">
             <span class="bva-tag before">BEFORE</span>
@@ -1124,7 +1117,6 @@ function showPage(name, tabEl) {
 
   // Render konten halaman
   if (name === 'trends') renderTrendCharts();
-  if (name === 'bva') renderBvaCharts();
   if (name === 'data') renderTable();
   if (name === 'dn-handler') renderDnHandler();
   if (name === 'admin') renderAdminTable();
@@ -1581,58 +1573,6 @@ function renderTrendCharts() {
       '<div style="font-size:11px;color:var(--text-muted);font-family:\'IBM Plex Mono\',monospace">' + d.val + ' part · ' + ((d.val / total) * 100).toFixed(1) + '%</div></div>' +
     '</div>';
   }).join('');
-}
-
-// ════════════════════════════════════════
-//  BVA CHARTS
-// ════════════════════════════════════════
-function renderBvaCharts() {
-  var cats = ['Deteksi Mismatch', 'Verifikasi DN Neg', 'Proses Manual'];
-  var before = [75, 25, 37.5];
-  var after = [1, 5, 5];
-
-  destroyChart('chart-bva-time');
-  charts['chart-bva-time'] = new Chart(document.getElementById('chart-bva-time'), {
-    type: 'bar',
-    data: {
-      labels: cats,
-      datasets: [
-        { label: 'Before (menit)', data: before, backgroundColor: 'rgba(248,81,73,.7)', borderColor: '#f85149', borderWidth: 1, borderRadius: 4 },
-        { label: 'After (menit)', data: after, backgroundColor: 'rgba(63,185,80,.7)', borderColor: '#3fb950', borderWidth: 1, borderRadius: 4 },
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#e6edf3', font: { size: 12, family: 'IBM Plex Sans' } } }, tooltip: { mode: 'index' } },
-      scales: {
-        x: { ticks: { color: '#7d8590', font: { size: 11 } }, grid: { display: false }, border: { color: 'var(--border)' } },
-        y: { ticks: { color: '#7d8590', font: { size: 11 } }, grid: { color: 'rgba(48,54,61,.5)' }, border: { color: 'var(--border)' }, title: { display: true, text: 'Menit/Hari', color: '#7d8590', font: { size: 11 } } }
-      }
-    }
-  });
-
-  destroyChart('chart-bva-cost');
-  charts['chart-bva-cost'] = new Chart(document.getElementById('chart-bva-cost'), {
-    type: 'bar',
-    data: {
-      labels: ['Before', 'After', 'Penghematan'],
-      datasets: [{
-        label: 'Biaya Waktu (Rp)',
-        data: [3575000, 237500, 3337500],
-        backgroundColor: ['rgba(248,81,73,.7)', 'rgba(63,185,80,.7)', 'rgba(121,192,255,.7)'],
-        borderColor: ['#f85149', '#3fb950', '#79c0ff'],
-        borderWidth: 1, borderRadius: 4,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return 'Rp ' + c.raw.toLocaleString('id-ID'); } } } },
-      scales: {
-        x: { ticks: { color: '#7d8590', font: { size: 11 } }, grid: { display: false }, border: { color: 'var(--border)' } },
-        y: { ticks: { color: '#7d8590', font: { size: 11 } }, grid: { color: 'rgba(48,54,61,.5)' }, border: { color: 'var(--border)' }, title: { display: true, text: 'Rp/Bulan', color: '#7d8590', font: { size: 11 } } }
-      }
-    }
-  });
 }
 
 // ════════════════════════════════════════
