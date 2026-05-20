@@ -991,11 +991,18 @@ function showPage(name, tabEl) {
 
 // Format tanggal singkat ID
 function formatDateID(dateObj) {
-  return dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  return dateObj.toLocaleDateString('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
 }
-// Format waktu HH:MM:SS
+// Format waktu HH:MM:SS — selalu dalam WIB (Asia/Jakarta)
 function formatTimeID(dateObj) {
-  return dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return dateObj.toLocaleTimeString('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false
+  });
 }
 
 function tickAdminClock() {
@@ -1072,13 +1079,17 @@ async function renderAdminTable(silent) {
   tbody.innerHTML = users.map(function(u) {
     var roleClass = u.role === 'Supervisor IC' ? 'supervisor' : 'staff';
 
-    // Tgl Daftar: tanggal statis dari DB (kapan user mendaftar)
+    // Tgl Daftar: dari DB (created_at UTC) → konversi ke WIB (UTC+7)
     var tglDaftar = '-';
     if (u.created_at) {
       var d = new Date(u.created_at);
-      var tglBagian  = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-      var jamBagian  = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      tglDaftar = tglBagian + ', ' + jamBagian;
+      // toLocaleString dengan timeZone eksplisit WIB agar akurat di semua browser
+      tglDaftar = d.toLocaleString('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+      });
     }
 
     return '<tr>' +
