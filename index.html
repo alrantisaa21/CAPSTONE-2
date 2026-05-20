@@ -1082,8 +1082,10 @@ async function renderAdminTable(silent) {
     // Tgl Daftar: dari DB (created_at UTC) → konversi ke WIB (UTC+7)
     var tglDaftar = '-';
     if (u.created_at) {
-      var d = new Date(u.created_at);
-      // toLocaleString dengan timeZone eksplisit WIB agar akurat di semua browser
+      // Supabase kadang kirim tanpa 'Z' suffix → paksa parse sebagai UTC
+      var rawTs = u.created_at;
+      if (!rawTs.endsWith('Z') && !rawTs.includes('+')) rawTs = rawTs + 'Z';
+      var d = new Date(rawTs);
       tglDaftar = d.toLocaleString('id-ID', {
         timeZone: 'Asia/Jakarta',
         day: '2-digit', month: 'long', year: 'numeric',
