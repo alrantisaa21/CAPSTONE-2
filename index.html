@@ -1079,19 +1079,22 @@ async function renderAdminTable(silent) {
   tbody.innerHTML = users.map(function(u) {
     var roleClass = u.role === 'Supervisor IC' ? 'supervisor' : 'staff';
 
-    // Tgl Daftar: dari DB (created_at UTC) → konversi ke WIB (UTC+7)
+    // Tgl Daftar: dari DB (created_at UTC) → konversi manual ke WIB (UTC+7)
     var tglDaftar = '-';
     if (u.created_at) {
-      // Supabase kadang kirim tanpa 'Z' suffix → paksa parse sebagai UTC
-      var rawTs = u.created_at;
-      if (!rawTs.endsWith('Z') && !rawTs.includes('+')) rawTs = rawTs + 'Z';
-      var d = new Date(rawTs);
-      tglDaftar = d.toLocaleString('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        day: '2-digit', month: 'long', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit',
-        hour12: false
-      });
+      // Supabase mengirim ISO8601 — ambil epoch UTC lalu tambah 7 jam secara eksplisit
+      var utcMs  = Date.parse(u.created_at);   // selalu UTC epoch (ms)
+      var wibMs  = utcMs + (7 * 60 * 60 * 1000); // +7 jam dalam milidetik
+      var dWib   = new Date(wibMs);
+      // Format manual agar tidak bergantung pada Intl/timeZone browser
+      var dd  = String(dWib.getUTCDate()).padStart(2, '0');
+      var mm  = dWib.getUTCMonth();
+      var yyyy= dWib.getUTCFullYear();
+      var hh  = String(dWib.getUTCHours()).padStart(2, '0');
+      var min = String(dWib.getUTCMinutes()).padStart(2, '0');
+      var ss  = String(dWib.getUTCSeconds()).padStart(2, '0');
+      var namaBulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+      tglDaftar = dd + ' ' + namaBulan[mm] + ' ' + yyyy + ', ' + hh + '.' + min + '.' + ss;
     }
 
     return '<tr>' +
