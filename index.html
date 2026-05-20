@@ -1005,10 +1005,16 @@ function tickAdminClock() {
   if (clockEl) clockEl.textContent = formatTimeID(now);
   if (dateEl)  dateEl.textContent  = formatDateID(now);
 
-  // Update kolom "Waktu Sekarang" pada setiap baris tabel (kelas time-live)
+  // Update kolom "Waktu Sekarang" pada setiap baris tabel
   var cells = document.querySelectorAll('.time-live');
   for (var i = 0; i < cells.length; i++) {
     cells[i].textContent = formatTimeID(now);
+  }
+
+  // Update bagian JAM pada kolom "Tgl Daftar" (tanggal statis, jam berdetak)
+  var timeParts = document.querySelectorAll('.tgl-daftar-time');
+  for (var j = 0; j < timeParts.length; j++) {
+    timeParts[j].textContent = formatTimeID(now);
   }
 }
 
@@ -1069,15 +1075,25 @@ async function renderAdminTable(silent) {
 
   tbody.innerHTML = users.map(function(u) {
     var roleClass = u.role === 'Supervisor IC' ? 'supervisor' : 'staff';
-    // Tanggal daftar — format ID (tetap statis, ini data historis)
-    var tglDaftar = u.created_at
-      ? new Date(u.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
-      : '-';
+
+    // Pisahkan: tanggal daftar (statis dari DB) dan jam (real-time berdetak)
+    var tglStatis = '-';
+    if (u.created_at) {
+      var d = new Date(u.created_at);
+      // Hanya bagian TANGGAL — statis karena ini data historis kapan mendaftar
+      tglStatis = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
 
     return '<tr>' +
       '<td style="font-family:\'IBM Plex Mono\',monospace">' + u.username + '</td>' +
       '<td><span class="role-badge ' + roleClass + '">' + u.role + '</span></td>' +
-      '<td style="color:var(--text-muted);font-size:12px;font-family:\'IBM Plex Mono\',monospace">' + tglDaftar + '</td>' +
+      // Kolom Tgl Daftar: tanggal statis + jam real-time berdetak
+      '<td style="color:var(--text-muted);font-size:12px;font-family:\'IBM Plex Mono\',monospace">' +
+        tglStatis +
+        (u.created_at
+          ? '<br><span class="tgl-daftar-time" style="color:var(--cyan);font-size:11px">' + formatTimeID(now) + '</span>'
+          : '') +
+      '</td>' +
       // Kolom waktu real-time — diperbarui oleh tickAdminClock()
       '<td><span class="time-live">' + formatTimeID(now) + '</span></td>' +
       '<td>' +
