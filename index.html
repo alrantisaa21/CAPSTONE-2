@@ -4,7 +4,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>IC Monitoring Dashboard — PT Inkoasku v3</title>
+<title>IC Monitoring Dashboard — PT Inkoasku v4</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -98,6 +98,197 @@ body {
   color: var(--text);
   min-height: 100vh;
 }
+
+/* ── ESCALATION WORKFLOW STYLES ── */
+
+/* Stepper */
+.esc-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 12px 0 16px;
+  padding: 0 4px;
+}
+.esc-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  position: relative;
+}
+.esc-step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-muted);
+  transition: all .3s ease;
+  position: relative;
+  z-index: 2;
+}
+.esc-step-circle.done {
+  background: rgba(63,185,80,.2);
+  border-color: var(--green);
+  color: var(--green);
+}
+.esc-step-circle.active {
+  background: rgba(31,111,235,.2);
+  border-color: var(--accent);
+  color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(31,111,235,.15);
+}
+.esc-step-circle.warn {
+  background: rgba(210,153,34,.2);
+  border-color: var(--orange);
+  color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(210,153,34,.12);
+}
+.esc-step-label {
+  font-size: 9px;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  line-height: 1.3;
+  max-width: 60px;
+}
+.esc-step-label.done  { color: var(--green); }
+.esc-step-label.active{ color: var(--cyan); }
+.esc-step-label.warn  { color: var(--orange); }
+.esc-connector {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin-bottom: 20px;
+  transition: background .4s ease;
+  max-width: 40px;
+}
+.esc-connector.done { background: var(--green); }
+.esc-connector.partial {
+  background: linear-gradient(90deg, var(--green) 50%, var(--border) 50%);
+}
+
+/* Status badge pills for escalation */
+.esc-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  white-space: nowrap;
+}
+.esc-status-pill.pending     { background: rgba(125,133,144,.12); color: var(--text-muted); border: 1px solid rgba(125,133,144,.25); }
+.esc-status-pill.escalated   { background: rgba(31,111,235,.12);  color: var(--cyan);       border: 1px solid rgba(31,111,235,.3); }
+.esc-status-pill.in-review   { background: rgba(163,113,247,.12); color: var(--purple);     border: 1px solid rgba(163,113,247,.3); }
+.esc-status-pill.resolved    { background: rgba(63,185,80,.12);   color: var(--green);      border: 1px solid rgba(63,185,80,.3); }
+.esc-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.esc-status-dot.pulse { animation: pulse 1.5s infinite; }
+
+/* DN Item enhanced card */
+.dn-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.dn-item:hover { border-color: #444; }
+.dn-item.state-escalated { border-color: rgba(31,111,235,.4); box-shadow: 0 0 0 1px rgba(31,111,235,.1); }
+.dn-item.state-in-review { border-color: rgba(163,113,247,.4); box-shadow: 0 0 0 1px rgba(163,113,247,.1); }
+.dn-item.state-resolved  { border-color: rgba(63,185,80,.3);  opacity: .75; }
+.dn-item-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.dn-item-info { flex: 1; min-width: 180px; }
+.dn-item-part { font-size: 13px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+.dn-item-desc { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.dn-item-val  { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 700; color: var(--red); min-width: 80px; text-align: center; }
+.dn-item-val-label { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 2px; }
+.dn-item-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.dn-resolved { text-decoration: line-through; opacity: .5; }
+.resolved-badge { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+
+/* Escalation meta info bar */
+.esc-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.esc-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.esc-meta-label { opacity: .6; }
+.esc-meta-value { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--text); }
+.esc-meta-sep { opacity: .3; }
+
+/* Supervisor notification badge */
+.supervisor-notif {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(163,113,247,.1);
+  border: 1px solid rgba(163,113,247,.3);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--purple);
+  font-weight: 600;
+  animation: notifPulse 2s ease-in-out infinite;
+}
+@keyframes notifPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(163,113,247,.3); }
+  50%      { box-shadow: 0 0 0 4px rgba(163,113,247,0); }
+}
+
+/* Pending escalation count badge on nav */
+.nav-notif-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  background: var(--red);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 0 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: pulse 2s infinite;
+}
+
 /* ── AUTH SCREEN ── */
 #auth-screen {
   min-height: 100vh;
@@ -231,6 +422,10 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
 .btn-danger:hover { background: rgba(248,81,73,.1); }
 .btn-success { background: transparent; border-color: var(--green); color: var(--green); }
 .btn-success:hover { background: rgba(63,185,80,.1); }
+.btn-purple { background: transparent; border-color: var(--purple); color: var(--purple); }
+.btn-purple:hover { background: rgba(163,113,247,.1); }
+.btn-cyan { background: transparent; border-color: var(--cyan); color: var(--cyan); }
+.btn-cyan:hover { background: rgba(121,192,255,.1); }
 .flex-sep { flex: 1; }
 /* ── DN NEGATIVE HANDLER ── */
 .dn-handler { background: rgba(210,153,34,.06); border: 1px solid rgba(210,153,34,.25); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
@@ -238,26 +433,17 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
 .dn-handler-icon { font-size: 20px; }
 .dn-handler-title { font-size: 14px; font-weight: 600; color: var(--yellow); }
 .dn-handler-sub { font-size: 12px; color: var(--text-muted); }
-.dn-items { display: flex; flex-direction: column; gap: 10px; }
-.dn-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.dn-item-info { flex: 1; min-width: 180px; }
-.dn-item-part { font-size: 13px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
-.dn-item-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-.dn-item-val { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 700; color: var(--red); min-width: 80px; text-align: center; }
-.dn-item-val-label { font-size: 10px; color: var(--text-muted); text-align: center; }
-.dn-item-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.dn-resolved { text-decoration: line-through; opacity: .5; }
-.resolved-badge { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+.dn-items { display: flex; flex-direction: column; gap: 12px; }
 /* ── LOG ── */
 .log-container { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
 .log-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px; background: var(--bg); border-radius: 6px; font-size: 12px; }
 .log-time { color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
 .log-msg { color: var(--text); flex: 1; }
 .log-type { padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
-.log-type.info { background: rgba(31,111,235,.15); color: var(--cyan); }
-.log-type.warn { background: rgba(210,153,34,.15); color: var(--orange); }
-.log-type.error { background: rgba(248,81,73,.15); color: var(--red); }
-.log-type.ok { background: rgba(63,185,80,.15); color: var(--green); }
+.log-type.info  { background: rgba(31,111,235,.15); color: var(--cyan); }
+.log-type.warn  { background: rgba(210,153,34,.15); color: var(--orange); }
+.log-type.error { background: rgba(248,81,73,.15);  color: var(--red); }
+.log-type.ok    { background: rgba(63,185,80,.15);  color: var(--green); }
 /* ── INPUT SECTION ── */
 .input-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 20px; }
 @media(max-width:900px){ .input-grid{grid-template-columns:1fr 1fr} }
@@ -289,13 +475,7 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
   font-family: 'IBM Plex Mono', monospace; color: var(--cyan);
 }
 .realtime-dot { width: 5px; height: 5px; background: var(--cyan); border-radius: 50%; animation: pulse 1s infinite; }
-/* Waktu per baris user */
-.time-live {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  color: var(--text-muted);
-  transition: color .3s;
-}
+.time-live { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-muted); transition: color .3s; }
 /* ── EMPTY STATE ── */
 .empty { text-align: center; padding: 48px 24px; color: var(--text-muted); }
 .empty-icon { font-size: 36px; margin-bottom: 12px; }
@@ -422,11 +602,10 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
     <button class="btn-logout" onclick="logout()">Keluar</button>
   </div>
 
-  <!-- NAV — BVA tab dihapus -->
   <div class="nav-tabs" id="nav-tabs">
     <div class="nav-tab active" data-page="overview" onclick="showPage('overview', this)">📊 Overview</div>
     <div class="nav-tab" data-page="trends" onclick="showPage('trends', this)">📈 Tren &amp; Grafik</div>
-    <div class="nav-tab" data-page="dn-handler" onclick="showPage('dn-handler', this)">🚨 DN Negatif</div>
+    <div class="nav-tab" data-page="dn-handler" onclick="showPage('dn-handler', this)">🚨 DN Negatif<span class="nav-notif-dot" id="dn-nav-badge" style="display:none">0</span></div>
     <div class="nav-tab" data-page="data" onclick="showPage('data', this)">🗃️ Data Part</div>
     <div class="nav-tab" data-page="log" onclick="showPage('log', this)">📋 Log Aktivitas</div>
     <div class="nav-tab" data-page="urgency" onclick="showPage('urgency', this)">🔴 Urgency</div>
@@ -560,8 +739,34 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
     <div class="page" id="page-dn-handler">
       <div class="section-header" style="margin-bottom:16px">
         <div class="section-title">Penanganan Outstanding DN Negatif</div>
-        <span class="badge yellow" id="dn-count-badge">0 item perlu penanganan</span>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="badge yellow" id="dn-count-badge">0 item perlu penanganan</span>
+          <!-- Supervisor: badge eskalasi menunggu ditinjau -->
+          <span id="dn-pending-review-badge" style="display:none" class="supervisor-notif">
+            <span>👁</span><span id="dn-pending-review-count">0</span> menunggu tinjauan Supervisor
+          </span>
+        </div>
       </div>
+
+      <!-- Legend status workflow -->
+      <div class="card" style="margin-bottom:16px;padding:14px 18px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:12px;font-weight:600;color:var(--text-muted)">
+          <span>ALUR STATUS ESKALASI</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="esc-status-pill pending"><span class="esc-status-dot"></span>PENDING</span>
+          <span style="color:var(--text-muted);font-size:12px">→</span>
+          <span class="esc-status-pill escalated"><span class="esc-status-dot pulse"></span>ESCALATED</span>
+          <span style="color:var(--text-muted);font-size:12px">→</span>
+          <span class="esc-status-pill in-review"><span class="esc-status-dot pulse"></span>IN REVIEW</span>
+          <span style="color:var(--text-muted);font-size:12px">→</span>
+          <span class="esc-status-pill resolved"><span class="esc-status-dot"></span>RESOLVED</span>
+          <span style="margin-left:12px;font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace">
+            Staff: Eskalasi · Supervisor: Terima → Resolve
+          </span>
+        </div>
+      </div>
+
       <div class="dn-handler">
         <div class="dn-handler-header">
           <div class="dn-handler-icon">⚠️</div>
@@ -574,25 +779,26 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
           <div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Tidak ada DN negatif terdeteksi</div></div>
         </div>
       </div>
+
       <div class="card" style="margin-bottom:20px">
         <div class="card-title">📋 SOP Penanganan Outstanding DN Negatif</div>
         <div class="card-sub">Prosedur standar sesuai rancangan solusi OEM — Approval Workflow</div>
         <div style="display:flex;flex-direction:column;gap:0;margin-top:8px">
           <div style="display:flex;align-items:flex-start;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)">
             <div style="width:28px;height:28px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">1</div>
-            <div><div style="font-size:13px;font-weight:600">Identifikasi</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">Sistem otomatis menandai DN dengan nilai Outstanding &lt; 0. Alert muncul di dashboard dan log aktivitas.</div></div>
+            <div><div style="font-size:13px;font-weight:600">Identifikasi</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">Sistem otomatis menandai DN dengan nilai Outstanding &lt; 0. Alert muncul di dashboard dan log aktivitas. Status: <strong style="color:var(--text-muted)">PENDING</strong>.</div></div>
           </div>
           <div style="display:flex;align-items:flex-start;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)">
             <div style="width:28px;height:28px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">2</div>
-            <div><div style="font-size:13px;font-weight:600">Verifikasi oleh Staff IC</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">Staff IC memeriksa apakah PO terkait telah di-cancel atau direvisi. Jika ya, lanjut ke langkah 3.</div></div>
+            <div><div style="font-size:13px;font-weight:600">Eskalasi oleh Staff IC/PPIC</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">Staff menekan tombol "⚡ Eskalasi" → status berubah menjadi <strong style="color:var(--cyan)">ESCALATED</strong>. Supervisor mendapat notifikasi di dashboard.</div></div>
           </div>
           <div style="display:flex;align-items:flex-start;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)">
-            <div style="width:28px;height:28px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;color:#000">3</div>
-            <div><div style="font-size:13px;font-weight:600">Eskalasi ke Supervisor IC / PPIC</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">Klik tombol "Eskalasi" → sistem mengirim notifikasi ke Supervisor untuk persetujuan auto-reverse DN.</div></div>
+            <div style="width:28px;height:28px;background:var(--purple);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">3</div>
+            <div><div style="font-size:13px;font-weight:600">Terima Eskalasi oleh Supervisor IC</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">Supervisor menekan tombol "👁 Terima Eskalasi" → status berubah menjadi <strong style="color:var(--purple)">IN REVIEW</strong>. Staff dapat melihat bahwa eskalasi telah diterima.</div></div>
           </div>
           <div style="display:flex;align-items:flex-start;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)">
-            <div style="width:28px;height:28px;background:var(--purple);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">4</div>
-            <div><div style="font-size:13px;font-weight:600">Auto-Reverse DN (Supervisor)</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">Supervisor meng-approve reverse → sistem memperbarui Outstanding DN menjadi 0 di Infor LN dan Portal E-Warehouse.</div></div>
+            <div style="width:28px;height:28px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;color:#000">4</div>
+            <div><div style="font-size:13px;font-weight:600">Auto-Reverse DN (Supervisor Resolve)</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">Supervisor menekan "✓ Resolve" → sistem memperbarui Outstanding DN menjadi 0. Status: <strong style="color:var(--green)">RESOLVED</strong>.</div></div>
           </div>
           <div style="display:flex;align-items:flex-start;gap:16px;padding:14px 0">
             <div style="width:28px;height:28px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">5</div>
@@ -735,7 +941,6 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
         <div class="section-header">
           <div class="section-title">Manajemen Pengguna</div>
           <div style="display:flex;align-items:center;gap:10px">
-            <!-- Jam real-time -->
             <div class="realtime-clock">
               <div class="realtime-dot"></div>
               <span id="admin-clock">--:--:--</span>
@@ -744,8 +949,6 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
             <button class="btn-sm btn-ghost" onclick="renderAdminTable()">↻ Refresh</button>
           </div>
         </div>
-
-        <!-- Info total pengguna -->
         <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 18px;display:flex;align-items:center;gap:10px">
             <span style="font-size:18px">👥</span>
@@ -764,11 +967,10 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 18px;display:flex;align-items:center;gap:10px">
             <span style="font-size:18px">🔵</span>
             <div>
-              <div style="font-size:11px;color:var(--text-muted)">Staff (IC & PPIC)</div>
+              <div style="font-size:11px;color:var(--text-muted)">Staff (IC &amp; PPIC)</div>
               <div style="font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--cyan)" id="admin-count-staff">—</div>
             </div>
           </div>
-          <!-- Timestamp refresh terakhir -->
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 18px;display:flex;align-items:center;gap:10px">
             <span style="font-size:18px">🔄</span>
             <div>
@@ -777,17 +979,12 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
             </div>
           </div>
         </div>
-
         <div class="table-wrap">
           <table class="user-table">
             <thead>
               <tr>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Tgl Daftar</th>
-                <!-- Kolom waktu lokal real-time -->
-                <th>Waktu Sekarang (Real-Time)</th>
-                <th>Aksi</th>
+                <th>Username</th><th>Role</th><th>Tgl Daftar</th>
+                <th>Waktu Sekarang (Real-Time)</th><th>Aksi</th>
               </tr>
             </thead>
             <tbody id="tbl-admin"></tbody>
@@ -825,12 +1022,79 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // ════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════
-var currentUser  = null;
-var editTarget   = null;
-var charts       = {};
-var adminClockTimer  = null;   // interval ID untuk jam di admin
-var adminAutoRefresh = null;   // interval ID untuk auto-refresh tabel
-var adminUserList    = [];     // cache list user yang sudah dimuat
+var currentUser      = null;
+var editTarget       = null;
+var charts           = {};
+var adminClockTimer  = null;
+var adminAutoRefresh = null;
+var adminUserList    = [];
+
+// ════════════════════════════════════════
+//  ESCALATION STATE MACHINE
+//  States: 'pending' | 'escalated' | 'in_review' | 'resolved'
+// ════════════════════════════════════════
+function getEscStates() {
+  try { return JSON.parse(localStorage.getItem('ic_esc_states') || '{}'); } catch(e) { return {}; }
+}
+function saveEscStates(s) { localStorage.setItem('ic_esc_states', JSON.stringify(s)); }
+
+function getEscState(partId) {
+  var states = getEscStates();
+  return states[partId] || {
+    status: 'pending',       // pending | escalated | in_review | resolved
+    escalatedBy:  null,      // username yang eskalasi
+    escalatedAt:  null,      // timestamp
+    reviewedBy:   null,      // username supervisor yang terima
+    reviewedAt:   null,
+    resolvedBy:   null,
+    resolvedAt:   null
+  };
+}
+
+function setEscState(partId, patch) {
+  var states = getEscStates();
+  var current = getEscState(partId);
+  states[partId] = Object.assign({}, current, patch);
+  saveEscStates(states);
+}
+
+function clearEscState(partId) {
+  var states = getEscStates();
+  delete states[partId];
+  saveEscStates(states);
+}
+
+function getNowStr() {
+  return new Date().toLocaleString('id-ID', { dateStyle:'short', timeStyle:'medium' });
+}
+
+// Count items in specific esc state (for nav badge)
+function countEscByStatus(status) {
+  var parts  = getParts();
+  var states = getEscStates();
+  var count  = 0;
+  parts.forEach(function(p) {
+    if (getStatus(p) === 'neg' || p.ln < 0 || p.portal < 0) {
+      var st = states[p.id] ? states[p.id].status : 'pending';
+      if (st === status) count++;
+    }
+  });
+  return count;
+}
+
+function updateNavBadge() {
+  var badge = document.getElementById('dn-nav-badge');
+  if (!badge) return;
+  var pending   = countEscByStatus('pending');
+  var escalated = countEscByStatus('escalated');
+  var total = pending + escalated;
+  if (total > 0) {
+    badge.textContent = total;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
 
 // ════════════════════════════════════════
 //  STORAGE HELPERS
@@ -909,7 +1173,6 @@ async function doLogin() {
   var p    = document.getElementById('login-pass').value;
   var msgEl = document.getElementById('login-msg');
   msgEl.textContent = 'Memeriksa...';
-
   const { data, error } = await sb.from('users').select('*').eq('username', u).eq('password', p).single();
   if (error || !data) { msgEl.textContent = 'Username atau password salah.'; return; }
   currentUser = data;
@@ -954,7 +1217,6 @@ function launchApp() {
 
 function logout() {
   addLog('Logout: ' + currentUser.username, 'info');
-  // Hentikan semua interval admin saat logout
   stopAdminTimers();
   currentUser = null;
   document.getElementById('auth-screen').style.display = 'flex';
@@ -973,10 +1235,7 @@ function showPage(name, tabEl) {
   var target = document.getElementById('page-' + name);
   if (target) target.classList.add('active');
   if (tabEl) tabEl.classList.add('active');
-
-  // Hentikan timer admin jika pindah halaman lain
   if (name !== 'admin') stopAdminTimers();
-
   if (name === 'trends')     renderTrendCharts();
   if (name === 'data')       renderTable();
   if (name === 'dn-handler') renderDnHandler();
@@ -986,23 +1245,13 @@ function showPage(name, tabEl) {
 }
 
 // ════════════════════════════════════════
-//  ADMIN — REAL-TIME CLOCK & AUTO-REFRESH
+//  ADMIN
 // ════════════════════════════════════════
-
-// Format tanggal singkat ID
 function formatDateID(dateObj) {
-  return dateObj.toLocaleDateString('id-ID', {
-    timeZone: 'Asia/Jakarta',
-    day: '2-digit', month: 'short', year: 'numeric'
-  });
+  return dateObj.toLocaleDateString('id-ID', { timeZone:'Asia/Jakarta', day:'2-digit', month:'short', year:'numeric' });
 }
-// Format waktu HH:MM:SS — selalu dalam WIB (Asia/Jakarta)
 function formatTimeID(dateObj) {
-  return dateObj.toLocaleTimeString('id-ID', {
-    timeZone: 'Asia/Jakarta',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false
-  });
+  return dateObj.toLocaleTimeString('id-ID', { timeZone:'Asia/Jakarta', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
 }
 
 function tickAdminClock() {
@@ -1011,60 +1260,33 @@ function tickAdminClock() {
   var dateEl  = document.getElementById('admin-date');
   if (clockEl) clockEl.textContent = formatTimeID(now);
   if (dateEl)  dateEl.textContent  = formatDateID(now);
-
-  // Update kolom "Waktu Sekarang" pada setiap baris tabel
   var cells = document.querySelectorAll('.time-live');
-  for (var i = 0; i < cells.length; i++) {
-    cells[i].textContent = formatTimeID(now);
-  }
-
-
+  for (var i = 0; i < cells.length; i++) cells[i].textContent = formatTimeID(now);
 }
 
 function stopAdminTimers() {
-  if (adminClockTimer)   { clearInterval(adminClockTimer);   adminClockTimer   = null; }
-  if (adminAutoRefresh)  { clearInterval(adminAutoRefresh);  adminAutoRefresh  = null; }
+  if (adminClockTimer)  { clearInterval(adminClockTimer);  adminClockTimer  = null; }
+  if (adminAutoRefresh) { clearInterval(adminAutoRefresh); adminAutoRefresh = null; }
 }
 
 function initAdminPage() {
-  stopAdminTimers(); // pastikan tidak duplikat
-
-  // Mulai jam real-time (update tiap detik)
+  stopAdminTimers();
   tickAdminClock();
   adminClockTimer = setInterval(tickAdminClock, 1000);
-
-  // Auto-refresh data dari Supabase tiap 30 detik
   renderAdminTable();
-  adminAutoRefresh = setInterval(function() {
-    renderAdminTable(true); // true = silent refresh (tanpa loading spinner)
-  }, 30000);
+  adminAutoRefresh = setInterval(function() { renderAdminTable(true); }, 30000);
 }
 
 async function renderAdminTable(silent) {
   var tbody = document.getElementById('tbl-admin');
   if (!tbody) return;
-
-  if (!silent) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">Memuat data...</td></tr>';
-  }
-
-  const { data: users, error } = await sb
-    .from('users')
-    .select('id, username, role, created_at')
-    .order('created_at', { ascending: false });
-
-  if (error || !users) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--red)">Gagal memuat data dari Supabase</td></tr>';
-    return;
-  }
-
-  adminUserList = users; // simpan cache
-
-  // Update summary cards
+  if (!silent) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">Memuat data...</td></tr>';
+  const { data: users, error } = await sb.from('users').select('id, username, role, created_at').order('created_at', { ascending: false });
+  if (error || !users) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--red)">Gagal memuat data dari Supabase</td></tr>'; return; }
+  adminUserList = users;
   var totalUsers  = users.length;
   var supervisors = users.filter(function(u) { return u.role === 'Supervisor IC'; }).length;
   var staffCount  = totalUsers - supervisors;
-
   var totalEl = document.getElementById('admin-total-users');
   var supEl   = document.getElementById('admin-count-supervisor');
   var staffEl = document.getElementById('admin-count-staff');
@@ -1073,20 +1295,14 @@ async function renderAdminTable(silent) {
   if (supEl)   supEl.textContent   = supervisors;
   if (staffEl) staffEl.textContent = staffCount;
   if (refEl)   refEl.textContent   = formatTimeID(new Date());
-
   var now = new Date();
-
   tbody.innerHTML = users.map(function(u) {
     var roleClass = u.role === 'Supervisor IC' ? 'supervisor' : 'staff';
-
-    // Tgl Daftar: dari DB (created_at UTC) → konversi manual ke WIB (UTC+7)
     var tglDaftar = '-';
     if (u.created_at) {
-      // Supabase mengirim ISO8601 — ambil epoch UTC lalu tambah 7 jam secara eksplisit
-      var utcMs  = Date.parse(u.created_at);   // selalu UTC epoch (ms)
-      var wibMs  = utcMs + (7 * 60 * 60 * 1000); // +7 jam dalam milidetik
-      var dWib   = new Date(wibMs);
-      // Format manual agar tidak bergantung pada Intl/timeZone browser
+      var utcMs = Date.parse(u.created_at);
+      var wibMs = utcMs + (7 * 60 * 60 * 1000);
+      var dWib  = new Date(wibMs);
       var dd  = String(dWib.getUTCDate()).padStart(2, '0');
       var mm  = dWib.getUTCMonth();
       var yyyy= dWib.getUTCFullYear();
@@ -1096,19 +1312,12 @@ async function renderAdminTable(silent) {
       var namaBulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
       tglDaftar = dd + ' ' + namaBulan[mm] + ' ' + yyyy + ', ' + hh + '.' + min + '.' + ss;
     }
-
     return '<tr>' +
       '<td style="font-family:\'IBM Plex Mono\',monospace">' + u.username + '</td>' +
       '<td><span class="role-badge ' + roleClass + '">' + u.role + '</span></td>' +
-      // TGL DAFTAR: statis — tanggal + jam saat mendaftar dari DB (tidak berubah)
       '<td style="color:var(--text-muted);font-size:12px;font-family:\'IBM Plex Mono\',monospace">' + tglDaftar + '</td>' +
-      // WAKTU SEKARANG: real-time berdetak tiap detik via tickAdminClock()
-      '<td><span class="time-live" style="font-family:\'IBM Plex Mono\',monospace;font-size:12px">' + formatTimeID(now) + '</span></td>' +
-      '<td>' +
-        (u.username !== (currentUser ? currentUser.username : '')
-          ? '<button class="btn-sm btn-danger" style="font-size:11px;padding:3px 10px" onclick="deleteUser(\'' + u.username + '\')">Hapus</button>'
-          : '<span style="font-size:11px;color:var(--text-muted)">(Anda)</span>') +
-      '</td>' +
+      '<td><span class="time-live">' + formatTimeID(now) + '</span></td>' +
+      '<td>' + (u.username !== (currentUser ? currentUser.username : '') ? '<button class="btn-sm btn-danger" style="font-size:11px;padding:3px 10px" onclick="deleteUser(\'' + u.username + '\')">Hapus</button>' : '<span style="font-size:11px;color:var(--text-muted)">(Anda)</span>') + '</td>' +
     '</tr>';
   }).join('');
 }
@@ -1117,12 +1326,8 @@ async function deleteUser(username) {
   if (currentUser && username === currentUser.username) { alert('Tidak dapat menghapus akun sendiri.'); return; }
   if (!confirm('Hapus pengguna "' + username + '"?')) return;
   const { error } = await sb.from('users').delete().eq('username', username);
-  if (!error) {
-    addLog('Akun dihapus: ' + username, 'warn');
-    renderAdminTable();
-  } else {
-    alert('Gagal menghapus: ' + error.message);
-  }
+  if (!error) { addLog('Akun dihapus: ' + username, 'warn'); renderAdminTable(); }
+  else alert('Gagal menghapus: ' + error.message);
 }
 
 // ════════════════════════════════════════
@@ -1159,27 +1364,16 @@ function formatDuration(ms) {
   parts.push(mins + 'm');
   return parts.join(' ');
 }
-function recordIssueStart(partId) {
-  var key = 'res_start_' + partId;
-  if (!localStorage.getItem(key)) localStorage.setItem(key, Date.now().toString());
-}
-function clearIssueStart(partId) { localStorage.removeItem('res_start_' + partId); }
-function getOpenDuration(partId) {
-  var start = localStorage.getItem('res_start_' + partId);
-  if (!start) return null;
-  return Date.now() - parseInt(start);
-}
+function recordIssueStart(partId) { var key='res_start_'+partId; if(!localStorage.getItem(key)) localStorage.setItem(key, Date.now().toString()); }
+function clearIssueStart(partId)  { localStorage.removeItem('res_start_'+partId); }
+function getOpenDuration(partId)  { var start=localStorage.getItem('res_start_'+partId); if(!start) return null; return Date.now()-parseInt(start); }
 function getResolutionHistory() { try { return JSON.parse(localStorage.getItem('ic_res_history') || '[]'); } catch(e) { return []; } }
 function saveResolutionHistory(h) { localStorage.setItem('ic_res_history', JSON.stringify(h)); }
 
 function recordResolved(part, durationMs, method) {
   var history = getResolutionHistory();
   var now = new Date();
-  history.unshift({
-    part: part, durationMs: durationMs, method: method,
-    resolvedAt: now.toLocaleString('id-ID', { dateStyle:'short', timeStyle:'short' }),
-    resolvedTs: Date.now()
-  });
+  history.unshift({ part:part, durationMs:durationMs, method:method, resolvedAt:now.toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'}), resolvedTs:Date.now() });
   if (history.length > 100) history.splice(100);
   saveResolutionHistory(history);
 }
@@ -1194,10 +1388,9 @@ function checkResolutionOnSave(oldParts, newParts) {
     var isOk  = getStatus(p)   === 'match';
     if (!wasOk && isOk) {
       var dur = getOpenDuration(p.id);
-      if (dur !== null) { recordResolved(p.part, dur, 'auto'); clearIssueStart(p.id); addLog('✅ Auto-Solved: ' + p.part + ' — ' + formatDuration(dur), 'ok'); }
+      if (dur !== null) { recordResolved(p.part, dur, 'auto'); clearIssueStart(p.id); addLog('✅ Auto-Solved: '+p.part+' — '+formatDuration(dur), 'ok'); }
     } else if (wasOk && !isOk) {
-      recordIssueStart(p.id);
-      addLog('⚠ Issue detected: ' + p.part + ' — timer dimulai', 'warn');
+      recordIssueStart(p.id); addLog('⚠ Issue detected: '+p.part+' — timer dimulai', 'warn');
     } else if (!wasOk && !isOk) {
       recordIssueStart(p.id);
     }
@@ -1209,16 +1402,12 @@ function manualSolvePart(partId) {
   var idx = parts.findIndex(function(p) { return p.id === partId; });
   if (idx < 0) return;
   var p = parts[idx];
-  if (!confirm('Tandai part ' + p.part + ' sebagai SOLVED?\n\nSistem akan menyamakan Qty Portal E-WH → Qty Infor LN.')) return;
+  if (!confirm('Tandai part '+p.part+' sebagai SOLVED?\n\nSistem akan menyamakan Qty Portal E-WH → Qty Infor LN.')) return;
   var dur = getOpenDuration(p.id);
   var oldPortal = p.portal;
   parts[idx].portal = p.ln;
   saveParts(parts);
-  if (dur !== null) {
-    recordResolved(p.part, dur, 'manual');
-    clearIssueStart(p.id);
-    addLog('✅ Manual Solved: ' + p.part + ' (Portal ' + oldPortal + '→' + p.ln + ') — ' + formatDuration(dur), 'ok');
-  }
+  if (dur !== null) { recordResolved(p.part, dur, 'manual'); clearIssueStart(p.id); addLog('✅ Manual Solved: '+p.part+' (Portal '+oldPortal+'→'+p.ln+') — '+formatDuration(dur), 'ok'); }
   refreshAll();
   renderResolutionWidget();
 }
@@ -1229,14 +1418,12 @@ function renderResolutionWidget() {
   var history = getResolutionHistory();
   parts.forEach(function(p) { if (getStatus(p) !== 'match') recordIssueStart(p.id); });
   var openItems = parts.filter(function(p) { return getStatus(p) !== 'match'; });
-  var avgMs   = history.length ? history.reduce(function(s,h){ return s+h.durationMs; },0)/history.length : 0;
-  var fastMs  = history.length ? Math.min.apply(null, history.map(function(h){return h.durationMs;})) : 0;
-
+  var avgMs  = history.length ? history.reduce(function(s,h){return s+h.durationMs;},0)/history.length : 0;
+  var fastMs = history.length ? Math.min.apply(null, history.map(function(h){return h.durationMs;})) : 0;
   document.getElementById('res-stat-open').textContent    = openItems.length;
   document.getElementById('res-stat-solved').textContent  = history.length;
   document.getElementById('res-stat-avg').textContent     = history.length ? formatDuration(avgMs) : '—';
   document.getElementById('res-stat-fastest').textContent = history.length ? formatDuration(fastMs) : '—';
-
   var listEl = document.getElementById('res-list');
   if (resActiveTab === 'open') {
     listEl.innerHTML = openItems.length
@@ -1244,26 +1431,28 @@ function renderResolutionWidget() {
           var dur = getOpenDuration(p.id);
           var u   = getUrgency(p.aging);
           var diff = p.ln - p.portal;
-          var canSolve = currentUser && (currentUser.role === 'Supervisor IC' || currentUser.role === 'Staff IC');
-          return '<div class="res-item">' +
-            '<div class="res-item-info"><div class="res-item-part">' + p.part + '</div>' +
-            '<div class="res-item-sub">Selisih: ' + (diff>0?'+':'') + diff + ' · Aging: ' + p.aging + ' hari</div></div>' +
-            '<span class="urg-pill ' + u.cls + '" style="font-size:10px">' + u.label + '</span>' +
-            '<div style="text-align:right"><div class="res-time" style="color:var(--red)">⏱ ' + (dur!==null?formatDuration(dur):'—') + '</div>' +
-            '<div style="font-size:10px;color:var(--text-muted)">belum selesai</div></div>' +
-            (canSolve ? '<button class="btn-sm btn-success" style="padding:4px 10px;font-size:11px" onclick="manualSolvePart(' + p.id + ')">✓ Solve</button>' : '') +
+          var escSt = getEscState(p.id);
+          var canSolve = currentUser && (currentUser.role==='Supervisor IC'||currentUser.role==='Staff IC');
+          var escStatusHtml = buildEscStatusPill(escSt.status);
+          return '<div class="res-item">'+
+            '<div class="res-item-info"><div class="res-item-part">'+p.part+'</div>'+
+            '<div class="res-item-sub">Selisih: '+(diff>0?'+':'')+diff+' · Aging: '+p.aging+' hari · '+escStatusHtml+'</div></div>'+
+            '<span class="urg-pill '+u.cls+'" style="font-size:10px">'+u.label+'</span>'+
+            '<div style="text-align:right"><div class="res-time" style="color:var(--red)">⏱ '+(dur!==null?formatDuration(dur):'—')+'</div>'+
+            '<div style="font-size:10px;color:var(--text-muted)">belum selesai</div></div>'+
+            (canSolve?'<button class="btn-sm btn-success" style="padding:4px 10px;font-size:11px" onclick="manualSolvePart('+p.id+')">✓ Solve</button>':'')+
           '</div>';
         }).join('')
       : '<div class="empty" style="padding:24px"><div class="empty-icon">✅</div><div class="empty-text">Tidak ada item bermasalah</div></div>';
   } else {
     listEl.innerHTML = history.length
       ? history.slice(0,10).map(function(h) {
-          return '<div class="res-item">' +
-            '<div class="res-item-info"><div class="res-item-part">' + h.part + '</div>' +
-            '<div class="res-item-sub">Diselesaikan: ' + h.resolvedAt + ' · ' + (h.method==='auto'?'Otomatis':'Manual') + '</div></div>' +
-            '<span class="res-badge solved">✓ SOLVED</span>' +
-            '<div style="text-align:right"><div class="res-time" style="color:var(--green)">⏱ ' + formatDuration(h.durationMs) + '</div>' +
-            '<div style="font-size:10px;color:var(--text-muted)">waktu selesai</div></div>' +
+          return '<div class="res-item">'+
+            '<div class="res-item-info"><div class="res-item-part">'+h.part+'</div>'+
+            '<div class="res-item-sub">Diselesaikan: '+h.resolvedAt+' · '+(h.method==='auto'?'Otomatis':'Manual')+'</div></div>'+
+            '<span class="res-badge solved">✓ SOLVED</span>'+
+            '<div style="text-align:right"><div class="res-time" style="color:var(--green)">⏱ '+formatDuration(h.durationMs)+'</div>'+
+            '<div style="font-size:10px;color:var(--text-muted)">waktu selesai</div></div>'+
           '</div>';
         }).join('')
       : '<div class="empty" style="padding:24px"><div class="empty-icon">📋</div><div class="empty-text">Belum ada item yang diselesaikan</div></div>';
@@ -1271,18 +1460,18 @@ function renderResolutionWidget() {
 }
 function switchResTab(tab) {
   resActiveTab = tab;
-  document.getElementById('res-tab-open').classList.toggle('active', tab==='open');
+  document.getElementById('res-tab-open').classList.toggle('active',   tab==='open');
   document.getElementById('res-tab-solved').classList.toggle('active', tab==='solved');
   renderResolutionWidget();
 }
 
 function urgencyPill(aging) {
   var u = getUrgency(aging);
-  return '<span class="urg-pill ' + u.cls + '"><span class="urg-dot"></span>' + u.label + '</span>';
+  return '<span class="urg-pill '+u.cls+'"><span class="urg-dot"></span>'+u.label+'</span>';
 }
 function statusLabel(s) {
-  if (s === 'mismatch') return '<span class="status-pill mismatch"><span class="status-dot"></span>Mismatch</span>';
-  if (s === 'neg')      return '<span class="status-pill neg"><span class="status-dot"></span>DN Negatif</span>';
+  if (s==='mismatch') return '<span class="status-pill mismatch"><span class="status-dot"></span>Mismatch</span>';
+  if (s==='neg')      return '<span class="status-pill neg"><span class="status-dot"></span>DN Negatif</span>';
   return '<span class="status-pill match"><span class="status-dot"></span>Match</span>';
 }
 
@@ -1312,7 +1501,441 @@ function renderKPI() {
   negTrend.textContent = k.neg>0 ? '⚠ '+k.neg+' perlu penanganan segera' : '✓ Tidak ada DN negatif';
   negTrend.className = 'kpi-trend '+(k.neg>0?'up':'down');
   document.getElementById('kpi-acc-trend').textContent = k.acc!=='—' ? 'Target: ≥95%' : '';
+  updateNavBadge();
 }
+
+// ════════════════════════════════════════
+//  DN HANDLER — ESCALATION WORKFLOW
+// ════════════════════════════════════════
+
+/* Build the 4-step stepper for a given part */
+function buildStepper(escSt) {
+  var status = escSt.status;
+  var steps = [
+    { key:'pending',   icon:'⚠', label:'Teridentifikasi' },
+    { key:'escalated', icon:'⚡', label:'Dieskalasi' },
+    { key:'in_review', icon:'👁', label:'Diterima\nSupervisor' },
+    { key:'resolved',  icon:'✓', label:'Resolved' },
+  ];
+  var order = { pending:0, escalated:1, in_review:2, resolved:3 };
+  var curIdx = order[status] !== undefined ? order[status] : 0;
+
+  var html = '<div class="esc-stepper">';
+  steps.forEach(function(step, i) {
+    var stepIdx  = order[step.key];
+    var isDone   = stepIdx < curIdx;
+    var isActive = stepIdx === curIdx;
+    var circleClass = isDone ? 'done' : isActive ? (step.key==='escalated'?'warn':'active') : '';
+    var labelClass  = isDone ? 'done' : isActive ? (step.key==='escalated'?'warn':'active') : '';
+    var icon = isDone ? '✓' : step.icon;
+
+    if (i > 0) {
+      var connClass = isDone ? 'done' : (stepIdx === curIdx && curIdx > 0 ? 'partial' : '');
+      html += '<div class="esc-connector '+connClass+'"></div>';
+    }
+    html += '<div class="esc-step">'+
+      '<div class="esc-step-circle '+circleClass+'">'+icon+'</div>'+
+      '<div class="esc-step-label '+labelClass+'">'+step.label.replace('\n','<br>')+'</div>'+
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+/* Build status pill */
+function buildEscStatusPill(status) {
+  var cfg = {
+    pending:   { cls:'pending',   icon:'⏳', label:'PENDING' },
+    escalated: { cls:'escalated', icon:'⚡', label:'ESCALATED' },
+    in_review: { cls:'in-review', icon:'👁', label:'IN REVIEW' },
+    resolved:  { cls:'resolved',  icon:'✓',  label:'RESOLVED' },
+  };
+  var c = cfg[status] || cfg.pending;
+  var dotPulse = (status==='escalated'||status==='in_review') ? ' pulse' : '';
+  return '<span class="esc-status-pill '+c.cls+'"><span class="esc-status-dot'+dotPulse+'"></span>'+c.icon+' '+c.label+'</span>';
+}
+
+/* Build meta bar below each item */
+function buildMetaBar(escSt, p) {
+  var parts = [];
+  if (escSt.escalatedBy) {
+    parts.push('<span class="esc-meta-item"><span class="esc-meta-label">Dieskalasi oleh:</span> <span class="esc-meta-value">'+escSt.escalatedBy+'</span></span>');
+    parts.push('<span class="esc-meta-sep">·</span>');
+    parts.push('<span class="esc-meta-item"><span class="esc-meta-label">Waktu:</span> <span class="esc-meta-value">'+escSt.escalatedAt+'</span></span>');
+  }
+  if (escSt.reviewedBy) {
+    parts.push('<span class="esc-meta-sep">·</span>');
+    parts.push('<span class="esc-meta-item"><span class="esc-meta-label">Diterima oleh:</span> <span class="esc-meta-value" style="color:var(--purple)">'+escSt.reviewedBy+'</span></span>');
+    parts.push('<span class="esc-meta-sep">·</span>');
+    parts.push('<span class="esc-meta-item"><span class="esc-meta-label">Pukul:</span> <span class="esc-meta-value">'+escSt.reviewedAt+'</span></span>');
+  }
+  if (escSt.resolvedBy) {
+    parts.push('<span class="esc-meta-sep">·</span>');
+    parts.push('<span class="esc-meta-item"><span class="esc-meta-label">Di-resolve oleh:</span> <span class="esc-meta-value" style="color:var(--green)">'+escSt.resolvedBy+'</span></span>');
+    parts.push('<span class="esc-meta-sep">·</span>');
+    parts.push('<span class="esc-meta-item"><span class="esc-meta-label">Pukul:</span> <span class="esc-meta-value">'+escSt.resolvedAt+'</span></span>');
+  }
+  if (!parts.length) return '';
+  return '<div class="esc-meta-bar">'+parts.join('')+'</div>';
+}
+
+/* Build action buttons per role & state */
+function buildActionButtons(p, escSt) {
+  var status = escSt.status;
+  var isSupervisor = currentUser && currentUser.role === 'Supervisor IC';
+  var isStaff      = currentUser && (currentUser.role === 'Staff IC' || currentUser.role === 'Staff PPIC');
+
+  // Already resolved
+  if (status === 'resolved') {
+    return '<span class="resolved-badge">✓ Resolved</span>';
+  }
+
+  var html = '';
+
+  if (isSupervisor) {
+    // Supervisor: hanya bisa "Terima Eskalasi" jika state=escalated, lalu "Resolve" jika state=in_review
+    if (status === 'pending') {
+      // Supervisor melihat item pending (belum dieskalasi staf) — bisa langsung Resolve
+      html += '<button class="btn-sm btn-success" onclick="resolveDn('+p.id+')">✓ Resolve</button>';
+    } else if (status === 'escalated') {
+      // Ada eskalasi dari staf — supervisor harus klik "Terima Eskalasi" dulu
+      html += '<button class="btn-sm btn-purple" onclick="supervisorAcceptEsc('+p.id+')">👁 Terima Eskalasi</button>';
+    } else if (status === 'in_review') {
+      // Sudah diterima, sekarang bisa Resolve
+      html += '<button class="btn-sm btn-success" onclick="resolveDn('+p.id+')">✓ Resolve</button>';
+    }
+  } else if (isStaff) {
+    // Staff: hanya bisa eskalasi jika masih pending
+    if (status === 'pending') {
+      html += '<button class="btn-sm btn-danger" onclick="escalateDn('+p.id+')">⚡ Eskalasi</button>';
+    } else if (status === 'escalated') {
+      // Sudah dieskalasi, menunggu supervisor
+      html += '<span style="font-size:11px;color:var(--cyan);font-family:\'IBM Plex Mono\',monospace;padding:4px 10px;background:rgba(31,111,235,.08);border:1px solid rgba(31,111,235,.2);border-radius:6px">⏳ Menunggu Supervisor</span>';
+    } else if (status === 'in_review') {
+      // Supervisor sudah terima — staff melihat info ini
+      html += '<span style="font-size:11px;color:var(--purple);font-family:\'IBM Plex Mono\',monospace;padding:4px 10px;background:rgba(163,113,247,.08);border:1px solid rgba(163,113,247,.2);border-radius:6px">👁 Sedang Ditinjau Supervisor</span>';
+    }
+  }
+
+  return html;
+}
+
+function renderDnHandler() {
+  var parts    = getParts();
+  var negParts = parts.filter(function(p){ return getStatus(p)==='neg'||p.ln<0||p.portal<0; });
+  document.getElementById('dn-count-badge').textContent = negParts.length+' item perlu penanganan';
+
+  // Update supervisor notification badge (count of items in 'escalated' state)
+  var pendingReviewCount = negParts.filter(function(p) {
+    return getEscState(p.id).status === 'escalated';
+  }).length;
+  var prBadge = document.getElementById('dn-pending-review-badge');
+  var prCount = document.getElementById('dn-pending-review-count');
+  var isSup   = currentUser && currentUser.role === 'Supervisor IC';
+  if (prBadge && prCount) {
+    if (isSup && pendingReviewCount > 0) {
+      prCount.textContent = pendingReviewCount;
+      prBadge.style.display = '';
+    } else {
+      prBadge.style.display = 'none';
+    }
+  }
+
+  var container = document.getElementById('dn-items-list');
+  if (!negParts.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Tidak ada DN negatif terdeteksi</div></div>';
+    updateNavBadge();
+    return;
+  }
+
+  // Sort: escalated first (needs supervisor attention), then pending, in_review, resolved
+  var stateOrder = { escalated:0, pending:1, in_review:2, resolved:3 };
+  negParts.sort(function(a, b) {
+    var sa = getEscState(a.id).status || 'pending';
+    var sb2 = getEscState(b.id).status || 'pending';
+    return (stateOrder[sa]||9) - (stateOrder[sb2]||9);
+  });
+
+  container.innerHTML = negParts.map(function(p) {
+    var diff   = p.ln - p.portal;
+    var escSt  = getEscState(p.id);
+    var status = escSt.status || 'pending';
+    var stateClass = 'state-' + status.replace('_','-');
+    var isResolved = (status === 'resolved');
+
+    return '<div class="dn-item '+stateClass+(isResolved?' dn-resolved':'')+'" id="dn-item-'+p.id+'">'+
+      // Header row
+      '<div class="dn-item-header">'+
+        '<div class="dn-item-info">'+
+          '<div class="dn-item-part">'+p.part+'</div>'+
+          '<div class="dn-item-desc">Infor LN: '+p.ln+' · Portal E-WH: '+p.portal+' · Aging: '+p.aging+' hari</div>'+
+        '</div>'+
+        '<div>'+
+          '<div class="dn-item-val">'+diff+'</div>'+
+          '<div class="dn-item-val-label">Outstanding DN</div>'+
+        '</div>'+
+        // Status pill + action buttons
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">'+
+          buildEscStatusPill(status)+
+          '<div class="dn-item-actions">'+buildActionButtons(p, escSt)+'</div>'+
+        '</div>'+
+      '</div>'+
+      // Stepper
+      buildStepper(escSt)+
+      // Meta bar (audit trail)
+      buildMetaBar(escSt, p)+
+    '</div>';
+  }).join('');
+
+  renderDnLog();
+  updateNavBadge();
+}
+
+// ─── Aksi: Staff Eskalasi ───
+function escalateDn(id) {
+  var p = getParts().find(function(x){return x.id===id;});
+  if (!p) return;
+  var escSt = getEscState(id);
+  if (escSt.status !== 'pending') { alert('Item ini sudah dieskalasi sebelumnya.'); return; }
+
+  setEscState(id, {
+    status:      'escalated',
+    escalatedBy: currentUser.username,
+    escalatedAt: getNowStr()
+  });
+
+  addDnLog('[ESKALASI] '+currentUser.username+' mengeskalasi Part '+p.part+': Outstanding DN='+(p.ln-p.portal)+' → Menunggu Supervisor IC.', 'warn');
+  addLog('⚡ Eskalasi DN negatif: '+p.part+' (selisih '+(p.ln-p.portal)+') oleh '+currentUser.username, 'warn');
+  renderDnHandler();
+}
+
+// ─── Aksi: Supervisor Terima Eskalasi ───
+function supervisorAcceptEsc(id) {
+  var p = getParts().find(function(x){return x.id===id;});
+  if (!p) return;
+  var escSt = getEscState(id);
+  if (escSt.status !== 'escalated') { alert('Tidak ada eskalasi aktif untuk item ini.'); return; }
+
+  setEscState(id, {
+    status:     'in_review',
+    reviewedBy: currentUser.username,
+    reviewedAt: getNowStr()
+  });
+
+  addDnLog('[DITERIMA] Supervisor '+currentUser.username+' menerima eskalasi Part '+p.part+' dari '+escSt.escalatedBy+'. Status → IN REVIEW.', 'info');
+  addLog('👁 Supervisor '+currentUser.username+' menerima eskalasi: '+p.part, 'info');
+  renderDnHandler();
+}
+
+// ─── Aksi: Resolve DN (Supervisor) ───
+function resolveDn(id) {
+  var parts = getParts();
+  var idx   = parts.findIndex(function(x){return x.id===id;});
+  if (idx<0) return;
+  var p = parts[idx];
+  var escSt = getEscState(id);
+
+  // Guard: supervisor harus terima eskalasi dulu jika ada eskalasi pending
+  if (escSt.status === 'escalated' && currentUser && currentUser.role === 'Supervisor IC') {
+    alert('Harap klik "Terima Eskalasi" terlebih dahulu sebelum melakukan Resolve.');
+    return;
+  }
+
+  if (!confirm('Resolve DN negatif untuk part '+p.part+'?\nAuto-reverse Outstanding DN → 0.')) return;
+  var oldLn = p.ln;
+  parts[idx].ln = parts[idx].portal;
+  parts[idx].resolvedDn = true;
+  saveParts(parts);
+
+  setEscState(id, {
+    status:     'resolved',
+    resolvedBy: currentUser.username,
+    resolvedAt: getNowStr()
+  });
+
+  addDnLog('[RESOLVED] Auto-Reverse DN: Part '+p.part+' — LN disesuaikan '+oldLn+'→'+p.portal+'. Diselesaikan oleh '+currentUser.username+'.', 'ok');
+  addLog('✅ DN Negatif diselesaikan: '+p.part+' oleh '+currentUser.username, 'ok');
+  renderDnHandler();
+  refreshAll();
+}
+
+function renderDnLog() {
+  var logs = getDnLogs();
+  var el   = document.getElementById('dn-log');
+  if (!el) return;
+  el.innerHTML = logs.length
+    ? logs.map(function(l){
+        return '<div class="log-item"><span class="log-time">'+l.time+'</span>'+
+          '<span class="log-msg">'+l.msg+'</span><span class="log-type '+l.type+'">'+l.type.toUpperCase()+'</span></div>';
+      }).join('')
+    : '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Belum ada log penanganan DN</div></div>';
+}
+
+// ════════════════════════════════════════
+//  DATA TABLE
+// ════════════════════════════════════════
+function addPart() {
+  var part  = document.getElementById('inp-part').value.trim();
+  var ln    = parseInt(document.getElementById('inp-ln').value)||0;
+  var portal= parseInt(document.getElementById('inp-portal').value)||0;
+  var aging = parseInt(document.getElementById('inp-aging').value)||0;
+  if (!part) { alert('Part number wajib diisi!'); return; }
+  var parts = getParts();
+  if (parts.some(function(p){return p.part===part;})) { alert('Part sudah ada!'); return; }
+  parts.push({ id:Date.now(), part, ln, portal, aging, resolvedDn:false });
+  saveParts(parts);
+  addLog('Part baru ditambahkan: '+part+' (LN:'+ln+', Portal:'+portal+')', 'ok');
+  ['inp-part','inp-ln','inp-portal','inp-aging'].forEach(function(id){document.getElementById(id).value='';});
+  renderTable(); refreshKPI();
+}
+
+function renderTable() {
+  var parts   = getParts();
+  var fStatus = document.getElementById('filter-status').value;
+  var fSearch = document.getElementById('filter-search').value.toLowerCase();
+  var filtered = parts.filter(function(p){
+    var s = getStatus(p);
+    var matchStatus = fStatus==='all'||
+      (fStatus==='mismatch'&&s==='mismatch')||(fStatus==='match'&&s==='match')||
+      (fStatus==='neg'&&s==='neg')||(fStatus==='aging'&&p.aging>3);
+    return matchStatus && (!fSearch||p.part.toLowerCase().indexOf(fSearch)!==-1);
+  });
+  var canEdit   = currentUser && (currentUser.role==='Supervisor IC'||currentUser.role==='Staff IC');
+  var canDelete = currentUser && currentUser.role==='Supervisor IC';
+  var tbody = document.getElementById('tbl-main');
+  if (!filtered.length) {
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px">Tidak ada data ditemukan</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(function(p){
+    var s=getStatus(p), diff=p.ln-p.portal;
+    return '<tr>'+
+      '<td style="font-family:\'IBM Plex Mono\',monospace;font-weight:600;font-size:12px">'+p.part+'</td>'+
+      '<td>'+p.ln.toLocaleString()+'</td><td>'+p.portal.toLocaleString()+'</td>'+
+      '<td style="font-family:\'IBM Plex Mono\',monospace;color:'+(diff<0?'var(--red)':diff>0?'var(--orange)':'var(--green)')+'">'+
+        (diff>0?'+':'')+diff.toLocaleString()+'</td>'+
+      '<td><span style="color:'+(p.aging>7?'var(--red)':p.aging>3?'var(--orange)':'var(--text-muted)')+'">'+p.aging+'</span></td>'+
+      '<td>'+statusLabel(s)+'</td>'+
+      '<td style="display:flex;gap:6px">'+
+        (canEdit?'<button class="btn-sm btn-ghost" style="padding:4px 10px;font-size:11px" onclick="openEdit('+p.id+')">Edit</button>':'')+
+        (canDelete?'<button class="btn-sm btn-danger" style="padding:4px 10px;font-size:11px" onclick="deletePart('+p.id+')">Del</button>':'')+
+      '</td></tr>';
+  }).join('');
+}
+
+function openEdit(id) {
+  var p = getParts().find(function(x){return x.id===id;});
+  if (!p) return;
+  editTarget = id;
+  document.getElementById('edit-part').value   = p.part;
+  document.getElementById('edit-ln').value     = p.ln;
+  document.getElementById('edit-portal').value = p.portal;
+  document.getElementById('edit-aging').value  = p.aging;
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeModal() { document.getElementById('edit-modal').classList.remove('open'); editTarget = null; }
+function saveEdit() {
+  if (!editTarget) return;
+  var parts = getParts();
+  var idx   = parts.findIndex(function(x){return x.id===editTarget;});
+  if (idx<0) return;
+  var old = { ln:parts[idx].ln, portal:parts[idx].portal };
+  parts[idx].ln     = parseInt(document.getElementById('edit-ln').value)||0;
+  parts[idx].portal = parseInt(document.getElementById('edit-portal').value)||0;
+  parts[idx].aging  = parseInt(document.getElementById('edit-aging').value)||0;
+  saveParts(parts);
+  addLog('Edit part '+parts[idx].part+': LN '+old.ln+'→'+parts[idx].ln+', Portal '+old.portal+'→'+parts[idx].portal, 'info');
+  closeModal(); renderTable(); refreshKPI();
+}
+function deletePart(id) {
+  var p = getParts().find(function(x){return x.id===id;});
+  if (!confirm('Hapus part '+(p?p.part:'')+' ?')) return;
+  saveParts(getParts().filter(function(x){return x.id!==id;}));
+  clearEscState(id);
+  addLog('Part dihapus: '+(p?p.part:id), 'warn');
+  renderTable(); refreshKPI();
+}
+function exportCSV() {
+  var parts = getParts();
+  var rows  = [['Part Number','Qty Infor LN','Qty Portal E-WH','Selisih','Aging (Hari)','Status']];
+  parts.forEach(function(p){ rows.push([p.part, p.ln, p.portal, p.ln-p.portal, p.aging, getStatus(p)]); });
+  var csv  = rows.map(function(r){return r.join(',');}).join('\n');
+  var blob = new Blob([csv],{type:'text/csv'});
+  var a    = document.createElement('a');
+  a.href   = URL.createObjectURL(blob);
+  a.download = 'ic_data_'+Date.now()+'.csv';
+  a.click();
+  addLog('Export CSV berhasil', 'ok');
+}
+
+// ════════════════════════════════════════
+//  URGENCY PAGE
+// ════════════════════════════════════════
+function renderUrgencyPage() {
+  var parts = getParts();
+  var urgOrder = {critical:0,high:1,medium:2,low:3};
+  var sorted = parts.slice().sort(function(a,b){
+    var ua=getUrgency(a.aging),ub=getUrgency(b.aging);
+    if(urgOrder[ua.level]!==urgOrder[ub.level]) return urgOrder[ua.level]-urgOrder[ub.level];
+    if(b.aging!==a.aging) return b.aging-a.aging;
+    return Math.abs(b.ln-b.portal)-Math.abs(a.ln-a.portal);
+  });
+  var counts={critical:0,high:0,medium:0,low:0};
+  parts.forEach(function(p){counts[getUrgency(p.aging).level]++;});
+  document.getElementById('urg-total-badge').textContent=(counts.critical+counts.high+counts.medium)+' item perlu perhatian';
+  document.getElementById('urg-summary-grid').innerHTML=[
+    {cls:'critical',icon:'🔴',label:'Critical',desc:'Aging > 7 hari',key:'critical'},
+    {cls:'high',    icon:'🟠',label:'High',    desc:'Aging 4–7 hari',key:'high'},
+    {cls:'medium',  icon:'🟡',label:'Medium',  desc:'Aging 1–3 hari',key:'medium'},
+    {cls:'low',     icon:'🟢',label:'Low',     desc:'Aging 0 hari',  key:'low'},
+  ].map(function(c){
+    return '<div class="urg-card '+c.cls+'">'+
+      '<div class="urg-card-label">'+c.icon+' '+c.label+'</div>'+
+      '<div class="urg-card-count">'+counts[c.key]+'</div>'+
+      '<div class="urg-card-desc">'+c.desc+'</div></div>';
+  }).join('');
+  var topItems = sorted.filter(function(p){return getStatus(p)!=='match'||p.aging>0;}).slice(0,5);
+  var maxAging = topItems.reduce(function(m,p){return Math.max(m,p.aging);},1)||1;
+  document.getElementById('priority-list').innerHTML = topItems.length
+    ? topItems.map(function(p,i){
+        var u=getUrgency(p.aging), diff=p.ln-p.portal, pct=Math.round((p.aging/maxAging)*100);
+        return '<div class="priority-item">'+
+          '<div class="priority-rank '+u.cls+'">'+(i+1)+'</div>'+
+          '<div class="priority-info"><div class="priority-part">'+p.part+'</div>'+
+          '<div class="priority-sub">Selisih: '+(diff>0?'+':'')+diff.toLocaleString()+'</div>'+
+          '<div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:'+pct+'%;background:'+u.color+'"></div></div></div>'+
+          '<div style="text-align:center;min-width:48px"><div class="priority-aging" style="color:'+u.color+'">'+p.aging+'</div><div class="aging-sub">hari</div></div>'+
+          '<div>'+urgencyPill(p.aging)+'</div></div>';
+      }).join('')
+    : '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Semua item dalam kondisi baik</div></div>';
+  document.getElementById('tbl-urgency').innerHTML = sorted.map(function(p){
+    var s=getStatus(p), diff=p.ln-p.portal, u=getUrgency(p.aging);
+    return '<tr>'+
+      '<td style="font-family:\'IBM Plex Mono\',monospace;font-weight:600;font-size:12px">'+p.part+'</td>'+
+      '<td>'+p.ln.toLocaleString()+'</td><td>'+p.portal.toLocaleString()+'</td>'+
+      '<td style="font-family:\'IBM Plex Mono\',monospace;color:'+(diff<0?'var(--red)':diff>0?'var(--orange)':'var(--green)')+'">'+
+        (diff>0?'+':'')+diff.toLocaleString()+'</td>'+
+      '<td style="color:'+u.color+';font-family:\'IBM Plex Mono\',monospace;font-weight:600">'+p.aging+'</td>'+
+      '<td>'+statusLabel(s)+'</td><td>'+urgencyPill(p.aging)+'</td></tr>';
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  LOG
+// ════════════════════════════════════════
+function renderLog() {
+  var logs = getLogs();
+  var el   = document.getElementById('main-log');
+  if (!el) return;
+  el.innerHTML = logs.length
+    ? logs.map(function(l){
+        return '<div class="log-item"><span class="log-time">'+l.time+'</span>'+
+          '<span class="log-msg">['+(l.user||'system')+'] '+l.msg+'</span>'+
+          '<span class="log-type '+l.type+'">'+l.type.toUpperCase()+'</span></div>';
+      }).join('')
+    : '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Belum ada aktivitas</div></div>';
+}
+function clearLog() { if (!confirm('Hapus semua log?')) return; saveLogs([]); renderLog(); }
 
 // ════════════════════════════════════════
 //  OVERVIEW CHARTS
@@ -1329,19 +1952,19 @@ function renderOverviewCharts() {
   destroyChart('chart-dist');
   charts['chart-dist'] = new Chart(document.getElementById('chart-dist'), {
     type:'bar',
-    data:{ labels:['Match','Mismatch','DN Negatif'],
-      datasets:[{ data:[match,mismatch,neg],
+    data:{labels:['Match','Mismatch','DN Negatif'],
+      datasets:[{data:[match,mismatch,neg],
         backgroundColor:['rgba(63,185,80,.7)','rgba(248,81,73,.7)','rgba(210,153,34,.7)'],
-        borderColor:['#3fb950','#f85149','#d29922'], borderWidth:1, borderRadius:6 }]},
+        borderColor:['#3fb950','#f85149','#d29922'],borderWidth:1,borderRadius:6}]},
     options:defaultBarOpts('Jumlah Part')
   });
   destroyChart('chart-aging');
   charts['chart-aging'] = new Chart(document.getElementById('chart-aging'), {
     type:'bar',
-    data:{ labels:['0 hari','1-3 hari','4-7 hari','>7 hari'],
-      datasets:[{ data:[a0,a1,a2,a3],
+    data:{labels:['0 hari','1-3 hari','4-7 hari','>7 hari'],
+      datasets:[{data:[a0,a1,a2,a3],
         backgroundColor:['rgba(63,185,80,.7)','rgba(121,192,255,.7)','rgba(210,153,34,.7)','rgba(248,81,73,.7)'],
-        borderColor:['#3fb950','#79c0ff','#d29922','#f85149'], borderWidth:1, borderRadius:6 }]},
+        borderColor:['#3fb950','#79c0ff','#d29922','#f85149'],borderWidth:1,borderRadius:6}]},
     options:defaultBarOpts('Jumlah Part')
   });
   var recentMis = parts.filter(function(p){ return getStatus(p)!=='match'; });
@@ -1428,254 +2051,6 @@ function renderTrendCharts() {
       '<div><div style="font-size:13px;font-weight:600">'+d.label+'</div>'+
       '<div style="font-size:11px;color:var(--text-muted);font-family:\'IBM Plex Mono\',monospace">'+d.val+' part · '+(d.val/total*100).toFixed(1)+'%</div></div></div>';
   }).join('');
-}
-
-// ════════════════════════════════════════
-//  DN HANDLER
-// ════════════════════════════════════════
-function renderDnHandler() {
-  var parts    = getParts();
-  var negParts = parts.filter(function(p){ return getStatus(p)==='neg'||p.ln<0||p.portal<0; });
-  document.getElementById('dn-count-badge').textContent = negParts.length+' item perlu penanganan';
-  var container = document.getElementById('dn-items-list');
-  if (!negParts.length) {
-    container.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Tidak ada DN negatif terdeteksi</div></div>';
-    return;
-  }
- 
-  // ── LOGIKA BARU ──
-  // Supervisor IC TIDAK mendapat tombol Eskalasi (karena eskalasi adalah tugas Staf)
-  // Staff IC / Staff PPIC mendapat tombol Eskalasi
-  var isSupervisor = currentUser && currentUser.role === 'Supervisor IC';
- 
-  container.innerHTML = negParts.map(function(p){
-    var diff=p.ln-p.portal, resolved=p.resolvedDn;
- 
-    var actionButtons;
-    if (resolved) {
-      // Sudah di-resolve: tampilkan badge resolved untuk semua role
-      actionButtons = '<span class="resolved-badge">✓ Resolved</span>';
-    } else if (isSupervisor) {
-      // Supervisor: hanya tombol Resolve, TANPA tombol Eskalasi
-      actionButtons = '<button class="btn-sm btn-success" onclick="resolveDn('+p.id+')">✓ Resolve</button>';
-    } else {
-      // Staff (IC / PPIC): tombol Eskalasi DAN Resolve
-      actionButtons =
-        '<button class="btn-sm btn-danger" onclick="escalateDn('+p.id+')">⚡ Eskalasi</button>'+
-        '<button class="btn-sm btn-success" onclick="resolveDn('+p.id+')">✓ Resolve</button>';
-    }
- 
-    return '<div class="dn-item '+(resolved?'dn-resolved':'')+'" id="dn-item-'+p.id+'">'+
-      '<div class="dn-item-info"><div class="dn-item-part">'+p.part+'</div>'+
-      '<div class="dn-item-desc">Infor LN: '+p.ln+' · Portal E-WH: '+p.portal+' · Aging: '+p.aging+' hari</div></div>'+
-      '<div><div class="dn-item-val">'+diff+'</div><div class="dn-item-val-label">Outstanding DN</div></div>'+
-      '<div class="dn-item-actions">'+actionButtons+'</div></div>';
-  }).join('');
-  renderDnLog();
-}
-  
-function escalateDn(id) {
-  var p = getParts().find(function(x){return x.id===id;});
-  if (!p) return;
-  addDnLog('[ESKALASI] Part '+p.part+': Outstanding DN='+(p.ln-p.portal)+' — Diteruskan ke Supervisor IC/PPIC.','warn');
-  addLog('Eskalasi DN negatif: '+p.part+' (selisih '+(p.ln-p.portal)+')','warn');
-  alert('✅ Eskalasi berhasil!\n\nPart '+p.part+' telah diteruskan ke Supervisor IC.\nOutstanding DN: '+(p.ln-p.portal));
-}
-
-function resolveDn(id) {
-  var parts = getParts();
-  var idx   = parts.findIndex(function(x){return x.id===id;});
-  if (idx<0) return;
-  var p = parts[idx];
-  if (!confirm('Resolve DN negatif untuk part '+p.part+'?\nAuto-reverse Outstanding DN → 0.')) return;
-  var oldLn=p.ln;
-  parts[idx].ln=parts[idx].portal;
-  parts[idx].resolvedDn=true;
-  saveParts(parts);
-  addDnLog('[RESOLVED] Auto-Reverse DN: Part '+p.part+' — LN disesuaikan '+oldLn+'→'+p.portal+'.','ok');
-  addLog('DN Negatif diselesaikan: '+p.part,'ok');
-  renderDnHandler();
-  refreshAll();
-}
-
-function renderDnLog() {
-  var logs = getDnLogs();
-  var el   = document.getElementById('dn-log');
-  if (!el) return;
-  el.innerHTML = logs.length
-    ? logs.map(function(l){
-        return '<div class="log-item"><span class="log-time">'+l.time+'</span>'+
-          '<span class="log-msg">'+l.msg+'</span><span class="log-type '+l.type+'">'+l.type.toUpperCase()+'</span></div>';
-      }).join('')
-    : '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Belum ada log penanganan DN</div></div>';
-}
-
-// ════════════════════════════════════════
-//  DATA TABLE
-// ════════════════════════════════════════
-function addPart() {
-  var part  = document.getElementById('inp-part').value.trim();
-  var ln    = parseInt(document.getElementById('inp-ln').value)||0;
-  var portal= parseInt(document.getElementById('inp-portal').value)||0;
-  var aging = parseInt(document.getElementById('inp-aging').value)||0;
-  if (!part) { alert('Part number wajib diisi!'); return; }
-  var parts = getParts();
-  if (parts.some(function(p){return p.part===part;})) { alert('Part sudah ada!'); return; }
-  parts.push({ id:Date.now(), part, ln, portal, aging, resolvedDn:false });
-  saveParts(parts);
-  addLog('Part baru ditambahkan: '+part+' (LN:'+ln+', Portal:'+portal+')','ok');
-  ['inp-part','inp-ln','inp-portal','inp-aging'].forEach(function(id){document.getElementById(id).value='';});
-  renderTable(); refreshKPI();
-}
-
-function renderTable() {
-  var parts   = getParts();
-  var fStatus = document.getElementById('filter-status').value;
-  var fSearch = document.getElementById('filter-search').value.toLowerCase();
-  var filtered = parts.filter(function(p){
-    var s = getStatus(p);
-    var matchStatus = fStatus==='all'||
-      (fStatus==='mismatch'&&s==='mismatch')||(fStatus==='match'&&s==='match')||
-      (fStatus==='neg'&&s==='neg')||(fStatus==='aging'&&p.aging>3);
-    return matchStatus && (!fSearch||p.part.toLowerCase().indexOf(fSearch)!==-1);
-  });
-  var canEdit  = currentUser && (currentUser.role==='Supervisor IC'||currentUser.role==='Staff IC');
-  var canDelete= currentUser && currentUser.role==='Supervisor IC';
-  var tbody    = document.getElementById('tbl-main');
-  if (!filtered.length) {
-    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px">Tidak ada data ditemukan</td></tr>';
-    return;
-  }
-  tbody.innerHTML = filtered.map(function(p){
-    var s=getStatus(p), diff=p.ln-p.portal;
-    return '<tr>'+
-      '<td style="font-family:\'IBM Plex Mono\',monospace;font-weight:600;font-size:12px">'+p.part+'</td>'+
-      '<td>'+p.ln.toLocaleString()+'</td><td>'+p.portal.toLocaleString()+'</td>'+
-      '<td style="font-family:\'IBM Plex Mono\',monospace;color:'+(diff<0?'var(--red)':diff>0?'var(--orange)':'var(--green)')+'">'+
-        (diff>0?'+':'')+diff.toLocaleString()+'</td>'+
-      '<td><span style="color:'+(p.aging>7?'var(--red)':p.aging>3?'var(--orange)':'var(--text-muted)')+'">'+p.aging+'</span></td>'+
-      '<td>'+statusLabel(s)+'</td>'+
-      '<td style="display:flex;gap:6px">'+
-        (canEdit?'<button class="btn-sm btn-ghost" style="padding:4px 10px;font-size:11px" onclick="openEdit('+p.id+')">Edit</button>':'')+
-        (canDelete?'<button class="btn-sm btn-danger" style="padding:4px 10px;font-size:11px" onclick="deletePart('+p.id+')">Del</button>':'')+
-      '</td></tr>';
-  }).join('');
-}
-
-function openEdit(id) {
-  var p = getParts().find(function(x){return x.id===id;});
-  if (!p) return;
-  editTarget = id;
-  document.getElementById('edit-part').value  = p.part;
-  document.getElementById('edit-ln').value    = p.ln;
-  document.getElementById('edit-portal').value= p.portal;
-  document.getElementById('edit-aging').value = p.aging;
-  document.getElementById('edit-modal').classList.add('open');
-}
-function closeModal() { document.getElementById('edit-modal').classList.remove('open'); editTarget=null; }
-function saveEdit() {
-  if (!editTarget) return;
-  var parts = getParts();
-  var idx   = parts.findIndex(function(x){return x.id===editTarget;});
-  if (idx<0) return;
-  var old = { ln:parts[idx].ln, portal:parts[idx].portal };
-  parts[idx].ln    = parseInt(document.getElementById('edit-ln').value)||0;
-  parts[idx].portal= parseInt(document.getElementById('edit-portal').value)||0;
-  parts[idx].aging = parseInt(document.getElementById('edit-aging').value)||0;
-  saveParts(parts);
-  addLog('Edit part '+parts[idx].part+': LN '+old.ln+'→'+parts[idx].ln+', Portal '+old.portal+'→'+parts[idx].portal,'info');
-  closeModal(); renderTable(); refreshKPI();
-}
-function deletePart(id) {
-  var p = getParts().find(function(x){return x.id===id;});
-  if (!confirm('Hapus part '+(p?p.part:'')+' ?')) return;
-  saveParts(getParts().filter(function(x){return x.id!==id;}));
-  addLog('Part dihapus: '+(p?p.part:id),'warn');
-  renderTable(); refreshKPI();
-}
-function exportCSV() {
-  var parts = getParts();
-  var rows  = [['Part Number','Qty Infor LN','Qty Portal E-WH','Selisih','Aging (Hari)','Status']];
-  parts.forEach(function(p){ rows.push([p.part,p.ln,p.portal,p.ln-p.portal,p.aging,getStatus(p)]); });
-  var csv  = rows.map(function(r){return r.join(',');}).join('\n');
-  var blob = new Blob([csv],{type:'text/csv'});
-  var a    = document.createElement('a');
-  a.href   = URL.createObjectURL(blob);
-  a.download='ic_data_'+Date.now()+'.csv';
-  a.click();
-  addLog('Export CSV berhasil','ok');
-}
-
-// ════════════════════════════════════════
-//  URGENCY PAGE
-// ════════════════════════════════════════
-function renderUrgencyPage() {
-  var parts = getParts();
-  var urgOrder = {critical:0,high:1,medium:2,low:3};
-  var sorted = parts.slice().sort(function(a,b){
-    var ua=getUrgency(a.aging),ub=getUrgency(b.aging);
-    if(urgOrder[ua.level]!==urgOrder[ub.level]) return urgOrder[ua.level]-urgOrder[ub.level];
-    if(b.aging!==a.aging) return b.aging-a.aging;
-    return Math.abs(b.ln-b.portal)-Math.abs(a.ln-a.portal);
-  });
-  var counts={critical:0,high:0,medium:0,low:0};
-  parts.forEach(function(p){counts[getUrgency(p.aging).level]++;});
-  document.getElementById('urg-total-badge').textContent=(counts.critical+counts.high+counts.medium)+' item perlu perhatian';
-  document.getElementById('urg-summary-grid').innerHTML=[
-    {cls:'critical',icon:'🔴',label:'Critical',desc:'Aging > 7 hari',key:'critical'},
-    {cls:'high',    icon:'🟠',label:'High',    desc:'Aging 4–7 hari',key:'high'},
-    {cls:'medium',  icon:'🟡',label:'Medium',  desc:'Aging 1–3 hari',key:'medium'},
-    {cls:'low',     icon:'🟢',label:'Low',     desc:'Aging 0 hari',  key:'low'},
-  ].map(function(c){
-    return '<div class="urg-card '+c.cls+'">'+
-      '<div class="urg-card-label">'+c.icon+' '+c.label+'</div>'+
-      '<div class="urg-card-count">'+counts[c.key]+'</div>'+
-      '<div class="urg-card-desc">'+c.desc+'</div></div>';
-  }).join('');
-  var topItems = sorted.filter(function(p){return getStatus(p)!=='match'||p.aging>0;}).slice(0,5);
-  var maxAging = topItems.reduce(function(m,p){return Math.max(m,p.aging);},1)||1;
-  document.getElementById('priority-list').innerHTML = topItems.length
-    ? topItems.map(function(p,i){
-        var u=getUrgency(p.aging), diff=p.ln-p.portal, pct=Math.round((p.aging/maxAging)*100);
-        return '<div class="priority-item">'+
-          '<div class="priority-rank '+u.cls+'">'+(i+1)+'</div>'+
-          '<div class="priority-info"><div class="priority-part">'+p.part+'</div>'+
-          '<div class="priority-sub">Selisih: '+(diff>0?'+':'')+diff.toLocaleString()+'</div>'+
-          '<div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:'+pct+'%;background:'+u.color+'"></div></div></div>'+
-          '<div style="text-align:center;min-width:48px"><div class="priority-aging" style="color:'+u.color+'">'+p.aging+'</div><div class="aging-sub">hari</div></div>'+
-          '<div>'+urgencyPill(p.aging)+'</div></div>';
-      }).join('')
-    : '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Semua item dalam kondisi baik</div></div>';
-  document.getElementById('tbl-urgency').innerHTML = sorted.map(function(p){
-    var s=getStatus(p), diff=p.ln-p.portal, u=getUrgency(p.aging);
-    return '<tr>'+
-      '<td style="font-family:\'IBM Plex Mono\',monospace;font-weight:600;font-size:12px">'+p.part+'</td>'+
-      '<td>'+p.ln.toLocaleString()+'</td><td>'+p.portal.toLocaleString()+'</td>'+
-      '<td style="font-family:\'IBM Plex Mono\',monospace;color:'+(diff<0?'var(--red)':diff>0?'var(--orange)':'var(--green)')+'">'+
-        (diff>0?'+':'')+diff.toLocaleString()+'</td>'+
-      '<td style="color:'+u.color+';font-family:\'IBM Plex Mono\',monospace;font-weight:600">'+p.aging+'</td>'+
-      '<td>'+statusLabel(s)+'</td><td>'+urgencyPill(p.aging)+'</td></tr>';
-  }).join('');
-}
-
-// ════════════════════════════════════════
-//  LOG
-// ════════════════════════════════════════
-function renderLog() {
-  var logs = getLogs();
-  var el   = document.getElementById('main-log');
-  if (!el) return;
-  el.innerHTML = logs.length
-    ? logs.map(function(l){
-        return '<div class="log-item"><span class="log-time">'+l.time+'</span>'+
-          '<span class="log-msg">['+(l.user||'system')+'] '+l.msg+'</span>'+
-          '<span class="log-type '+l.type+'">'+l.type.toUpperCase()+'</span></div>';
-      }).join('')
-    : '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Belum ada aktivitas</div></div>';
-}
-function clearLog() {
-  if (!confirm('Hapus semua log?')) return;
-  saveLogs([]); renderLog();
 }
 
 // ════════════════════════════════════════
