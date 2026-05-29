@@ -1442,22 +1442,38 @@ function renderDnHandler() {
     container.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Tidak ada DN negatif terdeteksi</div></div>';
     return;
   }
+ 
+  // ── LOGIKA BARU ──
+  // Supervisor IC TIDAK mendapat tombol Eskalasi (karena eskalasi adalah tugas Staf)
+  // Staff IC / Staff PPIC mendapat tombol Eskalasi
+  var isSupervisor = currentUser && currentUser.role === 'Supervisor IC';
+ 
   container.innerHTML = negParts.map(function(p){
     var diff=p.ln-p.portal, resolved=p.resolvedDn;
+ 
+    var actionButtons;
+    if (resolved) {
+      // Sudah di-resolve: tampilkan badge resolved untuk semua role
+      actionButtons = '<span class="resolved-badge">✓ Resolved</span>';
+    } else if (isSupervisor) {
+      // Supervisor: hanya tombol Resolve, TANPA tombol Eskalasi
+      actionButtons = '<button class="btn-sm btn-success" onclick="resolveDn('+p.id+')">✓ Resolve</button>';
+    } else {
+      // Staff (IC / PPIC): tombol Eskalasi DAN Resolve
+      actionButtons =
+        '<button class="btn-sm btn-danger" onclick="escalateDn('+p.id+')">⚡ Eskalasi</button>'+
+        '<button class="btn-sm btn-success" onclick="resolveDn('+p.id+')">✓ Resolve</button>';
+    }
+ 
     return '<div class="dn-item '+(resolved?'dn-resolved':'')+'" id="dn-item-'+p.id+'">'+
       '<div class="dn-item-info"><div class="dn-item-part">'+p.part+'</div>'+
       '<div class="dn-item-desc">Infor LN: '+p.ln+' · Portal E-WH: '+p.portal+' · Aging: '+p.aging+' hari</div></div>'+
       '<div><div class="dn-item-val">'+diff+'</div><div class="dn-item-val-label">Outstanding DN</div></div>'+
-      '<div class="dn-item-actions">'+
-        (resolved
-          ? '<span class="resolved-badge">✓ Resolved</span>'
-          : '<button class="btn-sm btn-danger" onclick="escalateDn('+p.id+')">⚡ Eskalasi</button>'+
-            '<button class="btn-sm btn-success" onclick="resolveDn('+p.id+')">✓ Resolve</button>')+
-      '</div></div>';
+      '<div class="dn-item-actions">'+actionButtons+'</div></div>';
   }).join('');
   renderDnLog();
 }
-
+  
 function escalateDn(id) {
   var p = getParts().find(function(x){return x.id===id;});
   if (!p) return;
