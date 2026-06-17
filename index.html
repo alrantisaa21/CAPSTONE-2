@@ -1116,7 +1116,8 @@ function addLog(msg, type) {
   type = type || 'info';
   var logs = getLogs();
   var now  = new Date();
-  var time = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  var time = now.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' ' +
+             now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
   logs.unshift({ time: time, msg: msg, type: type, user: currentUser ? currentUser.username : 'system' });
   if (logs.length > 200) logs.splice(200);
   saveLogs(logs);
@@ -1126,7 +1127,8 @@ function addDnLog(msg, type) {
   type = type || 'warn';
   var logs = getDnLogs();
   var now  = new Date();
-  var time = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  var time = now.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' ' +
+             now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
   logs.unshift({ time: time, msg: msg, type: type });
   saveDnLogs(logs);
   renderDnLog();
