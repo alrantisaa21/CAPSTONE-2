@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>IC Monitoring Dashboard — PT Inkoasku v4</title>
@@ -1013,13 +1012,6 @@ tbody tr:hover { background: rgba(255,255,255,.02); }
 
 <script>
 // ════════════════════════════════════════
-//  SUPABASE CONFIG
-// ════════════════════════════════════════
-const SUPABASE_URL = 'https://dajdegksemjcammjbjkw.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhamRlZ2tzZW1qY2FtbWpiamt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3NDMyODAsImV4cCI6MjA5MzMxOTI4MH0.q8ukFBXlkHEU8-Jpe3wZChqfMtsaba7-3h6o8_iKnyU';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// ════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════
 var currentUser      = null;
@@ -1027,7 +1019,6 @@ var editTarget       = null;
 var charts           = {};
 var adminClockTimer  = null;
 var adminAutoRefresh = null;
-var adminUserList    = [];
 
 // ════════════════════════════════════════
 //  ESCALATION STATE MACHINE
@@ -1097,7 +1088,7 @@ function updateNavBadge() {
 }
 
 // ════════════════════════════════════════
-//  STORAGE HELPERS
+//  STORAGE HELPERS (all data now lives in localStorage — no external backend)
 // ════════════════════════════════════════
 function getUsers()  { try { return JSON.parse(localStorage.getItem('ic_users') || '[]'); } catch(e) { return []; } }
 function saveUsers(u){ localStorage.setItem('ic_users', JSON.stringify(u)); }
@@ -1140,9 +1131,9 @@ function addDnLog(msg, type) {
 function seedData() {
   if (!getUsers().length) {
     saveUsers([
-      { username: 'admin',    password: 'admin123',  role: 'Supervisor IC' },
-      { username: 'ic_staff', password: 'staff123',  role: 'Staff IC' },
-      { username: 'ppic',     password: 'ppic123',   role: 'Staff PPIC' },
+      { username: 'admin',    password: 'admin123',  role: 'Supervisor IC', created_at: new Date().toISOString() },
+      { username: 'ic_staff', password: 'staff123',  role: 'Staff IC',      created_at: new Date().toISOString() },
+      { username: 'ppic',     password: 'ppic123',   role: 'Staff PPIC',    created_at: new Date().toISOString() },
     ]);
   }
   if (!getParts().length) {
@@ -1160,7 +1151,7 @@ function seedData() {
 }
 
 // ════════════════════════════════════════
-//  AUTH
+//  AUTH (fully local — username/password stored in localStorage)
 // ════════════════════════════════════════
 function switchAuthTab(tab) {
   var isLogin = tab === 'login';
@@ -1170,19 +1161,19 @@ function switchAuthTab(tab) {
   document.getElementById('register-form').style.display = isLogin ? 'none' : 'block';
 }
 
-async function doLogin() {
+function doLogin() {
   var u    = document.getElementById('login-user').value.trim();
   var p    = document.getElementById('login-pass').value;
   var msgEl = document.getElementById('login-msg');
-  msgEl.textContent = 'Memeriksa...';
-  const { data, error } = await sb.from('users').select('*').eq('username', u).eq('password', p).single();
-  if (error || !data) { msgEl.textContent = 'Username atau password salah.'; return; }
-  currentUser = data;
+  var users = getUsers();
+  var found = users.find(function(x) { return x.username === u && x.password === p; });
+  if (!found) { msgEl.textContent = 'Username atau password salah.'; return; }
+  currentUser = found;
   msgEl.textContent = '';
   launchApp();
 }
 
-async function doRegister() {
+function doRegister() {
   var u    = document.getElementById('reg-user').value.trim();
   var p    = document.getElementById('reg-pass').value;
   var r    = document.getElementById('reg-role').value;
@@ -1192,16 +1183,18 @@ async function doRegister() {
     msgEl.textContent = 'Username wajib diisi, password min. 6 karakter.';
     return;
   }
-  msgEl.style.color = 'var(--text-muted)';
-  msgEl.textContent = 'Mendaftarkan akun...';
-  const { data, error } = await sb.from('users').insert([{ username: u, password: p, role: r }]).select().single();
-  if (error) {
+  var users = getUsers();
+  if (users.some(function(x) { return x.username.toLowerCase() === u.toLowerCase(); })) {
     msgEl.style.color = 'var(--red)';
-    msgEl.textContent = error.code === '23505' ? 'Username sudah terdaftar.' : 'Gagal mendaftar: ' + error.message;
+    msgEl.textContent = 'Username sudah terdaftar.';
     return;
   }
+  users.push({ username: u, password: p, role: r, created_at: new Date().toISOString() });
+  saveUsers(users);
   msgEl.style.color = 'var(--green)';
   msgEl.textContent = 'Akun berhasil dibuat! Silakan masuk.';
+  document.getElementById('reg-user').value = '';
+  document.getElementById('reg-pass').value = '';
   setTimeout(function() { switchAuthTab('login'); }, 1200);
 }
 
@@ -1279,13 +1272,12 @@ function initAdminPage() {
   adminAutoRefresh = setInterval(function() { renderAdminTable(true); }, 30000);
 }
 
-async function renderAdminTable(silent) {
+function renderAdminTable(silent) {
   var tbody = document.getElementById('tbl-admin');
   if (!tbody) return;
-  if (!silent) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">Memuat data...</td></tr>';
-  const { data: users, error } = await sb.from('users').select('id, username, role, created_at').order('created_at', { ascending: false });
-  if (error || !users) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--red)">Gagal memuat data dari Supabase</td></tr>'; return; }
-  adminUserList = users;
+  var users = getUsers().slice().sort(function(a, b) {
+    return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+  });
   var totalUsers  = users.length;
   var supervisors = users.filter(function(u) { return u.role === 'Supervisor IC'; }).length;
   var staffCount  = totalUsers - supervisors;
@@ -1298,6 +1290,10 @@ async function renderAdminTable(silent) {
   if (staffEl) staffEl.textContent = staffCount;
   if (refEl)   refEl.textContent   = formatTimeID(new Date());
   var now = new Date();
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">Belum ada pengguna</td></tr>';
+    return;
+  }
   tbody.innerHTML = users.map(function(u) {
     var roleClass = u.role === 'Supervisor IC' ? 'supervisor' : 'staff';
     var tglDaftar = '-';
@@ -1324,12 +1320,13 @@ async function renderAdminTable(silent) {
   }).join('');
 }
 
-async function deleteUser(username) {
+function deleteUser(username) {
   if (currentUser && username === currentUser.username) { alert('Tidak dapat menghapus akun sendiri.'); return; }
   if (!confirm('Hapus pengguna "' + username + '"?')) return;
-  const { error } = await sb.from('users').delete().eq('username', username);
-  if (!error) { addLog('Akun dihapus: ' + username, 'warn'); renderAdminTable(); }
-  else alert('Gagal menghapus: ' + error.message);
+  var users = getUsers().filter(function(u) { return u.username !== username; });
+  saveUsers(users);
+  addLog('Akun dihapus: ' + username, 'warn');
+  renderAdminTable();
 }
 
 // ════════════════════════════════════════
